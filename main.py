@@ -47,10 +47,10 @@ async def main(image: Annotated[bytes, File()], artist: Annotated[str | None, He
      print(f"Playlist: {playlist} ({index}/{total}) SONG: {artist} - {title}")
      #image.read()
      #open(f'{image_folder}/{index}a.jpeg', 'w').write(await image.read())
-     Image.open(io.BytesIO(await image)).save(f'{image_folder}/{index}a.jpeg', 'JPEG')
+     Image.open(io.BytesIO(image)).save(f'{image_folder}/{index}a.jpeg', 'JPEG')
      #print(current_track)3``
      
-     db = json.loads(await open('./data.json').read())
+     db = json.loads(open('./data.json').read())
      
      
      return {"status": status}

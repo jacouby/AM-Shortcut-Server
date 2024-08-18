@@ -3,4 +3,5 @@ uvicorn
 spotipy
 requests
 pillow
+imagehash
 python-multipart

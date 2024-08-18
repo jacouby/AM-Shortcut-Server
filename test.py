@@ -1,32 +1,25 @@
-from PIL import Image, ImageChops
+from PIL import Image
+import imagehash
 
-def compare_images(image1_path, image2_path):
+def compare_images_phash(image1_path, image2_path):
     # Open the images
     img1 = Image.open(image1_path)
     img2 = Image.open(image2_path)
     
-    # Convert images to grayscale (optional, for more efficient comparison)
-    img1 = img1.convert('L')
-    img2 = img2.convert('L')
+    # Compute the perceptual hash for both images
+    hash1 = imagehash.phash(img1)
+    hash2 = imagehash.phash(img2)
     
-    # Check if images have the same size
-    if img1.size != img2.size:
-        return False
-    
-    # Get the difference between the two images
-    diff = ImageChops.difference(img1, img2)
-    
-    # Check if there are any non-zero pixels in the difference
-    if diff.getbbox():
-        return False
-    else:
-        return True
+    # Compare the hashes
+    return hash1 - hash2
 
 # Example usage
-image1_path = 'image1.jpg'
-image2_path = 'image2.jpg'
-
-if compare_images(image1_path, image2_path):
+image1_path = 'image1.jpeg'
+image2_path = 'image2.jpeg'
+ 
+hash_difference = compare_images_phash(image1_path, image2_path)
+print(f"Perceptual hash difference: {hash_difference}")
+if hash_difference == 0:
     print("The images are the same.")
 else:
     print("The images are different.")
