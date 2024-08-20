@@ -1,25 +1,38 @@
-from PIL import Image
-import imagehash
+import cv2
 
-def compare_images_phash(image1_path, image2_path):
-    # Open the images
-    img1 = Image.open(image1_path)
-    img2 = Image.open(image2_path)
+def compare_images_orb(image1_path, image2_path):
+    # Read the images using OpenCV
+    img1 = cv2.imread(image1_path, cv2.IMREAD_GRAYSCALE)
+    img2 = cv2.imread(image2_path, cv2.IMREAD_GRAYSCALE)
     
-    # Compute the perceptual hash for both images
-    hash1 = imagehash.phash(img1)
-    hash2 = imagehash.phash(img2)
+    # Initiate ORB detector
+    orb = cv2.ORB_create()
     
-    # Compare the hashes
-    return hash1 - hash2
+    # Find the keypoints and descriptors with ORB
+    kp1, des1 = orb.detectAndCompute(img1, None)
+    kp2, des2 = orb.detectAndCompute(img2, None)
+    
+    # Create BFMatcher object
+    bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
+    
+    # Match descriptors
+    matches = bf.match(des1, des2)
+    
+    # Sort them in the order of their distance
+    matches = sorted(matches, key=lambda x: x.distance)
+    
+    # Calculate the average distance of matches
+    avg_distance = sum(match.distance for match in matches) / len(matches)
+    
+    return avg_distance
 
 # Example usage
-image1_path = 'image1.jpeg'
-image2_path = 'image2.jpeg'
- 
-hash_difference = compare_images_phash(image1_path, image2_path)
-print(f"Perceptual hash difference: {hash_difference}")
-if hash_difference == 0:
-    print("The images are the same.")
+image1_path = './images/2a.jpeg'
+image2_path = './images/2s.jpeg'
+
+avg_distance = compare_images_orb(image1_path, image2_path)
+print(f"Average ORB keypoint match distance: {avg_distance}")
+if avg_distance < 10:  # Threshold depends on the application
+    print("The images are very similar.")
 else:
     print("The images are different.")

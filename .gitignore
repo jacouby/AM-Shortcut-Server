@@ -162,4 +162,5 @@ cython_debug/
 #.idea/
 
 #specific to project
-./images
+images/
+data.json

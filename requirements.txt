@@ -1,5 +1,6 @@
 fastapi
 uvicorn
+pydantic
 spotipy
 requests
 pillow
