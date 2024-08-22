@@ -29,8 +29,14 @@ sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials(client_id=spotify_id,
 
 @app.get("/")
 async def get_root():
+    # Check if the image_folder exists
+     if not os.path.exists(image_folder):
+     # Create the image_folder
+          os.makedirs(image_folder)
+          print(f"Dir '{image_folder}' created.")
+
     # Open both files within a context manager
-    with open('./data.json', 'r+') as current, open('./dt.json', 'r') as template:
+     with open('./data.json', 'r+') as current, open('./dt.json', 'r') as template:
         # Read contents of both files
         current_data = current.read()
         template_data = template.read()
@@ -42,26 +48,15 @@ async def get_root():
             current.truncate()  # Truncate the file
             current.write(template_data)  # Write the template data
 
-    return "Server Ready"
+     return "Server Ready"
 
 @app.post("/")
 async def main(image: Annotated[bytes, File()], artist: Annotated[str | None, Header()] = None, title: Annotated[str | None, Header()] = None, explicit: Annotated[str | None, Header()] = None, album: Annotated[str | None, Header()] = None, index: Annotated[str | None, Header()] = None, total: Annotated[str | None, Header()] = None):
-     status = 0
-     
-     import os
-     # Check if the image_folder exists
-     if not os.path.exists(image_folder):
-     # Create the image_folder
-          os.makedirs(image_folder)
-          print(f"Dir '{image_folder}' created.")
-
 
      print(f"({index}/{total}) album: {album} track: {artist} - {title}")
-     #image.read()
-     #open(f'{image_folder}/{index}a.jpeg', 'w').write(await image.read())
+     
      a_image_loc = f'{image_folder}/{index}a.jpeg'
      Image.open(io.BytesIO(image)).save(a_image_loc, 'JPEG')
-     #print(current_track)3``
      
      db = json.loads(open('./data.json').read())
 
