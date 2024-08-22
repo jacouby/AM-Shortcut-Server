@@ -9,7 +9,6 @@ This Project is currently a **WORK IN PROGRESS**
 -[] Spotify Oauth
 -[] Searching on Spotify
 -[] Adding to new Playlist
-
 ---
 
 # Usage
