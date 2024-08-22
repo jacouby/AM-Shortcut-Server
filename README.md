@@ -6,9 +6,9 @@ This Project is currently a **WORK IN PROGRESS**
 
 - [X] Loading Playlist
 - [X] Verifying Against Images
-- [] Spotify Oauth
-- [] Searching on Spotify
-- [] Adding to new Playlist
+- [ ] Spotify Oauth
+- [ ] Searching on Spotify
+- [ ] Adding to new Playlist
 
 ---
 
