@@ -5,9 +5,9 @@ Written in python using [FastAPI](https://fastapi.tiangolo.com/) and [Spotipy](h
 This Project is currently a **WORK IN PROGRESS**
 
 - [X] Loading Playlist
+- [X] Verifying Against Images
 - [] Spotify Oauth
 - [] Searching on Spotify
-- [X] Verifying Against Images
 - [] Adding to new Playlist
 
 ---
