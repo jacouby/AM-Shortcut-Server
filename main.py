@@ -1,24 +1,36 @@
 import requests
-import json
-import os, io
-import imagehash
+
+import os, io, json
+
+import uuid
+from dotenv import load_dotenv
+
+import imagehash, PIL
+
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
-from dotenv import load_dotenv
+
 from PIL import Image
+
 from fastapi import FastAPI, UploadFile, Header, File
 from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
 from typing import Annotated
 
+from urllib.parse import urlencode
+
 load_dotenv()
 
+auth_uuid = uuid.uuid4()
 spotify_id=os.getenv('SPOTIPY_CLIENT_ID')
 spotify_secret=os.getenv('SPOTIPY_CLIENT_SECRET')
+spotify_scope = os.getenv("SPOTIFY_SCOPE")
+auth_redir = 'http://localhost:8000/auth'
 db_file='./data.json'
 image_folder = './images'
-auth_link = os.getenv('SPOTIFY_LOGIN_LINK')
-spotify_scope = os.getenv("SPOTIFY_SCOPE")
+query_tags=  {'response_type':'code' ,'client_id': spotify_id, 'scope':spotify_scope, 'redirect_uri':auth_redir, 'state':auth_uuid  }
+auth_link = f'https://accounts.spotify.com/authorize?{urlencode(query_tags)}'
+
 
 app = FastAPI()
 
@@ -51,15 +63,12 @@ async def get_root():
             current.truncate()  # Truncate the file
             current.write(template_data)  # Write the template data
 
-<<<<<<< HEAD
-     return "Server Ready"
-=======
-    return RedirectResponse(auth_link)
+     return RedirectResponse(auth_link)
 
 @app.get("/auth")
 async def auth():
      sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials(client_id=spotify_id, client_secret=spotify_secret), retries=10)
->>>>>>> 4d23c37575a60a052d213b6cc76fff8b6dba4969
+
 
 @app.post("/")
 async def main(image: Annotated[bytes, File()], artist: Annotated[str | None, Header()] = None, title: Annotated[str | None, Header()] = None, explicit: Annotated[str | None, Header()] = None, album: Annotated[str | None, Header()] = None, index: Annotated[str | None, Header()] = None, total: Annotated[str | None, Header()] = None):
