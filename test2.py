@@ -1,8 +1,13 @@
-import os, json
-from dotenv import load_dotenv
+import json
 
-#db = json.load(open('./data.json'))
-#print(len(db['tracks']))
+# Load JSON data from a file named data.json
+with open('data.json', 'r') as file:
+    data = json.load(file)
 
-load_dotenv()
-print(os.getenv('SPOTIPY_CLIENT_ID'))
+missing_songs = []
+
+for x in data['tracks']:
+    if (x['spotify_uri'] == ''):
+        missing_songs.append(x)
+
+print("Missing Songs:", missing_songs)
