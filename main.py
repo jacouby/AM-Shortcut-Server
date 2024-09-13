@@ -32,12 +32,13 @@ image_folder = './images'
 query_tags=  {'response_type':'code' ,'client_id': spotify_id, 'scope':spotify_scope, 'redirect_uri':auth_redir, 'state':auth_uuid  }
 auth_link = f'https://accounts.spotify.com/authorize?{urlencode(query_tags)}'
 
-user = ""
-
 sp_oauth = oauth2.SpotifyOAuth( spotify_id, spotify_secret, auth_redir ,scope=spotify_scope )
 sp = spotipy.Spotify(auth_manager=sp_oauth)
 
 app = FastAPI()
+
+global me
+me =''
 
 class track(BaseModel):
     title: str
@@ -89,8 +90,6 @@ async def auth(response: Response, code: str = None, ):
           response.status_code = status.HTTP_401_UNAUTHORIZED
           return 'No code given. Please Retry'
      token_info = sp_oauth.get_access_token(code)
-     access_token = token_info['access_token']
-     sp.me()
      return FileResponse('auth_return.html')
 
 
@@ -130,7 +129,7 @@ async def main(image: Annotated[bytes, File()], artist: Annotated[str | None, He
 
                if r.status_code != 200:
                     print('error downloading cover')
-                    break
+                    continue
                
                s_image_loc = f'./{image_folder}/{index}s.jpeg'
                
@@ -144,11 +143,6 @@ async def main(image: Annotated[bytes, File()], artist: Annotated[str | None, He
                a_cover = Image.open(a_image_loc)
                a_cover_hash = imagehash.phash(a_cover)
                hash_diff = s_cover_hash - a_cover_hash          
-               
-               #print(f'Hashes: S = {s_cover_hash}, A = {a_cover_hash}')
-               #print(hash_diff)
-               #print(track['uri'])
-               #print('')
 
                if (hash_diff <= 3):
                     track_data['found_image'] = True
@@ -159,81 +153,32 @@ async def main(image: Annotated[bytes, File()], artist: Annotated[str | None, He
                     break
           
                if (track_data['spotify_uri'] == ''):
-                    #print('NO ALBUM MATCH')
                     try:
                          first_song_uris.append(search['tracks']['items'][0]['uri'])
                     except IndexError:
                          print('No Matches At All')
           
-     query = f"track:{title} artist:{artist} album:{album}"
+     queries = [
+          f"track:{title} artist:{artist} album:{album}",
+          f"track:{title} {artist} album:{album}",
+          f"track:{title} artist:{artist} {album}",
+          f"track:{title} {artist} {album}",
+          f"{title} {artist} album:{album}",
+          f"{title} artist:{artist} {album}",
+          f"track:{title}",
+          title,
+          #f"{title} {artist} {album}",
+          #f"{title} {artist}"
+     ]
+     for query in queries:
+          if (track_data['spotify_uri'] == '' ):
+               search = sp.search(query,50,0,'track')
+               search_total = search['tracks']['total']
 
-     search = sp.search(query,50,0,'track')
-     search_total = search['tracks']['total']
-     if (search_total != 0 and track_data['spotify_uri'] == ''):
-          check_matches(search)
-
-     if (search_total == 0):
-          query = f"track:{title} {artist} album:{album}"
-          search = sp.search(query,50,0,'track')
-          search_total = search['tracks']['total']
-
-     if (search_total != 0 and track_data['spotify_uri'] == ''):
-          check_matches(search)
-     print(search_total)
-
-     if (search_total == 0):
-          query = f"track:{title} artist:{artist} {album}"
-          search = sp.search(query,50,0,'track')
-          search_total = search['tracks']['total']
-
-     if (search_total != 0 and track_data['spotify_uri'] == ''):
-          check_matches(search)
-     print(search_total)
-
-     if (search_total == 0):
-          query = f"track:{title} {artist} {album}"
-          search = sp.search(query,50,0,'track')
-          search_total = search['tracks']['total']
-
-     if (search_total != 0 and track_data['spotify_uri'] == ''):
-          check_matches(search)
-     print(search_total)
-
-     if (search_total == 0):
-          query = f"{title} {artist} album:{album}"
-          search = sp.search(query,50,0,'track')
-          search_total = search['tracks']['total']
-
-     if (search_total != 0 and track_data['spotify_uri'] == ''):
-          check_matches(search)
-     print(search_total)
-
-     if (search_total == 0):
-          query = f"{title} artist:{artist} {album}"
-          search = sp.search(query,50,0,'track')
-          search_total = search['tracks']['total']
-
-     if (search_total != 0 and track_data['spotify_uri'] == ''):
-          check_matches(search)
-     print(search_total)
-     
-     if (search_total == 0):
-          query = f"{title} {artist} {album}"
-          search = sp.search(query,50,0,'track')
-          search_total = search['tracks']['total']
-
-     if (search_total != 0 and track_data['spotify_uri'] == ''):
-          check_matches(search)
-     print(search_total)
-
-     if (search_total == 0):
-          query = f"{title} {artist}"
-          search = sp.search(query,50,0,'track')
-          search_total = search['tracks']['total']
-
-     if (search_total != 0 and track_data['spotify_uri'] == ''):
-          check_matches(search)
-     print(search_total)
+               if (search_total != 0):
+                    print(search)
+                    check_matches(search)
+               print(search_total)
 
      if (track_data['spotify_uri'] == ''):
           print('Using First Option')
@@ -245,21 +190,34 @@ async def main(image: Annotated[bytes, File()], artist: Annotated[str | None, He
      with open(db_file, 'w') as file:
           json.dump(data, file, indent=4)
      
-     
-     
      return {"status": 'success'}
 
 @app.get('/playlist_gen')
-async def gen_playlist(playlist_name: str = 'Transfered Playlist'):
+async def gen_playlist(pl_name: str = 'Transfered Playlist'):
+     me = sp.me()['id']
+     print(me)
      print('Starting Playlist Creation')
      with open(db_file, 'r') as file:
           data = json.load(file)['tracks']
      total = len(data)
      print(f'Loading {total} From data.json into memory')
      uris = []
+     print(pl_name)
      for track in data:
-          print(f"""TRACK {track['index']}/{total} /n {track['artist']} - {track['title']} /n""")
-          uris.append(data['spotify_uri'])
+          #print(f"""TRACK {track['index']}/{total} /n {track['artist']} - {track['title']} /n""")
+          uris.append(track['spotify_uri'])
 
-     sp.user_playlist_create(user, playlist_name, False, description="Playlist Generated by https://github.com/jacouby/AM-Shortcut-Server" )
+     created = sp.user_playlist_create(user=me, name=pl_name, public=False, description="Playlist Generated by https://github.com/jacouby/AM-Shortcut-Server" )
+     print('Playlist Created')
+     print(created)
+
+     def add_items(uri_chunk):
+          add = sp.playlist_add_items(created['id'],uri_chunk)
+          print('Added Items')
+          print(add)
+
+     for i in range(0, len(uris), 100):
+          section = uris[i:i + 100]
+          add_items(section)
+               
      

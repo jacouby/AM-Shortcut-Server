@@ -1,8 +1,7 @@
-fastapi
-uvicorn
-pydantic
-spotipy
-requests
-pillow
-imagehash
-python-multipart
+fastapi==0.111.0
+pydantic==2.7.1
+spotipy==2.24.0
+requests==2.32.3
+pillow==10.4.0
+imagehash==4.3.1
+python-multipart==0.0.9

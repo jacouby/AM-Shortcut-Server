@@ -23,6 +23,4 @@ This Project is currently a **WORK IN PROGRESS**
 # Shortcuts
 ### In order to use the sever you send data via a shortcut.
 
-[Transfer Playlist]()
-
-[Check for missing Album Arts]()
+[Transfer Playlist](https://www.icloud.com/shortcuts/8123f9e7bd9c41889ba96e5cb5ca62e8)
